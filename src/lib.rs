@@ -3,6 +3,9 @@ use std::mem::size_of;
 pub const PACKET_LENGTH: usize = 896;
 pub const ID_LENGTH: usize = size_of::<u64>();
 
+pub const CLIENT_PORT: &'static str = "12000";
+pub const SERVER_PORT: &'static str = "14000";
+
 
 pub fn generate_packet(count: u64) -> [u8; PACKET_LENGTH] {
     let mut buf = [0u8; PACKET_LENGTH];

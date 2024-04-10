@@ -1,14 +1,18 @@
 use std::{io, thread};
+use std::env::args;
 use std::net::UdpSocket;
 use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::{Duration, SystemTime};
 use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
-use udp_ping::{generate_packet, PACKET_LENGTH, read_packet_id};
+use udp_ping::{CLIENT_PORT, SERVER_PORT, generate_packet, PACKET_LENGTH, read_packet_id};
 
 fn main() -> io::Result<()> {
-    let recv_socket = UdpSocket::bind("0.0.0.0:12000")?;
-    let send_socket = UdpSocket::bind("0.0.0.0:12001")?;
+    let args: Vec<String> = args().collect();
+    let recv_socket = UdpSocket::bind(format!("0.0.0.0:{CLIENT_PORT}"))?;
+    let send_socket = UdpSocket::bind("0.0.0.0:0")?; // port assigned by OS
+    println!("Sending pings to {}", get_server_addr(&args));
+    println!("Listening for replies on {}", recv_socket.local_addr()?);
 
     let count = 1000;
     let packet_recv = Mutex::new(vec![false; count as usize]);
@@ -34,7 +38,7 @@ fn main() -> io::Result<()> {
     let bar = create_progress_bar(count);
     for count in (0..count).progress_with(bar) {
         let buf = generate_packet(count);
-        send_socket.send_to(&buf, "127.0.0.1:14000")?;
+        send_socket.send_to(&buf, get_server_addr(&args))?;
         sleep(Duration::from_millis(5));
     }
 
@@ -55,6 +59,10 @@ fn main() -> io::Result<()> {
     println!("{} packets transmitted, {} packets received, {:.1}% packet loss",
              count, received, (count - received) as f32 / count as f32 * 100.0);
     Ok(())
+}
+
+fn get_server_addr(args: &Vec<String>) -> String {
+    format!("{}:{SERVER_PORT}", args.get(1).unwrap_or(&String::from("127.0.0.1")))
 }
 
 
