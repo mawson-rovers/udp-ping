@@ -43,7 +43,7 @@ fn main() -> io::Result<()> {
         if recv_thread.is_finished() {
             break;
         }
-        if SystemTime::now().duration_since(wait_started).unwrap().as_secs() > 5 {
+        if SystemTime::now().duration_since(wait_started).unwrap().as_secs() >= 5 {
             break;
         }
         sleep(Duration::from_millis(1));
@@ -53,7 +53,7 @@ fn main() -> io::Result<()> {
     let received = packet_recv.iter()
         .filter(|&b| *b).count() as u64;
     println!("{} packets transmitted, {} packets received, {:.1}% packet loss",
-             count, received, (count - received) as f32 / count as f32);
+             count, received, (count - received) as f32 / count as f32 * 100.0);
     Ok(())
 }
 
